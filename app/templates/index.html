@@ -1,0 +1,223 @@
+<!DOCTYPE html>
+<html lang="zh">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AEDL - 在线工作站</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@100..800&display=swap" rel="stylesheet">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        :root {
+            --bg-body: #0b1219;
+            --bg-navbar: rgba(13, 37, 59, 0.95);
+            --bg-card: rgba(22, 32, 44, 0.8);
+            --bg-card-hover: rgba(22, 97, 151, 0.15);
+            --text-primary: #d1d9e0;
+            --text-secondary: #8b99a7;
+            --color-primary: #163d61;
+            --color-accent: #58a6ff;
+            --color-danger: #ea2e2e;
+            /* Adjusted for visibility */
+            --color-border: #30363d;
+            --color-hover: #cc0000;
+
+            --radius-card: 24px;
+            --radius-btn: 12px;
+        }
+
+        body {
+            background-color: var(--bg-body);
+            margin: 0;
+            min-height: 100vh;
+            color: var(--text-primary);
+        }
+
+        .glass-header {
+            background-color: var(--bg-navbar);
+            backdrop-filter: blur(12px);
+            border-bottom: 1px solid var(--color-border);
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+        }
+
+        .nav-btn {
+            background-color: transparent;
+            border: 1px solid transparent;
+            /* Material Text Button style initially */
+            color: var(--text-secondary);
+            transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            height: 40px;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+
+        .nav-btn:hover {
+            color: #ffffff;
+            background-color: rgba(255, 255, 255, 0.08);
+        }
+
+        /* Logout button special case */
+        .nav-btn.logout:hover {
+            background-color: rgba(229, 0, 0, 0.1);
+            color: #ff3333;
+        }
+
+        .link-card {
+            background-color: var(--bg-card);
+            backdrop-filter: blur(0px);
+            /* Less blur for solid material feel, or keep it */
+            border: 1px solid var(--color-border);
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            box-shadow: var(--shadow-card);
+            border-radius: var(--radius-card);
+            overflow: hidden;
+            position: relative;
+        }
+
+        .link-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 4px;
+            background: var(--color-primary);
+            opacity: 0;
+            transition: opacity 0.3s;
+        }
+
+        .link-card:hover {
+            border-color: var(--color-accent);
+            background-color: var(--bg-card-hover);
+            transform: translateY(-4px);
+            box-shadow: var(--shadow-card-hover);
+        }
+
+        .link-card:hover::before {
+            opacity: 1;
+        }
+
+        .main-content {
+            position: relative;
+            z-index: 10;
+        }
+
+        /* 新增：进场动画 */
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .animate-card {
+            animation: fadeInUp 0.6s cubic-bezier(0.0, 0.0, 0.2, 1) backwards;
+            animation-delay: calc(var(--delay-index, 0) * 0.05s);
+        }
+
+        /* Material Ripple Effect equivalent for visual feedback */
+        .ripple {
+            position: relative;
+            overflow: hidden;
+        }
+    </style>
+</head>
+
+<body class="font-['JetBrains_Mono'] antialiased tracking-tight">
+
+
+
+    <header class="glass-header sticky top-0 z-50">
+        <div class="max-w-7xl mx-auto px-6 py-4 min-h-[6rem] flex flex-wrap justify-between items-center gap-4">
+            <div class="flex items-end space-x-3">
+                <h1 class="text-xl md:text-2xl font-black tracking-tight text-[#d1d9e0] leading-none">
+                    <span class="text-[#ff0000]">AEDL</span>
+                    <span class="text-[#8b99a7]">在线工作站</span>
+                </h1>
+            </div>
+
+            <div class="flex items-center space-x-4">
+                <div class="flex space-x-2">
+                    <a href="/profile" class="nav-btn px-5 rounded text-md font-bold">
+                        个人中心
+                    </a>
+                    <a href="/logout"
+                        class="nav-btn logout px-5 rounded text-md font-bold transition-colors uppercase tracking-widest">
+                        退出登录
+                    </a>
+                </div>
+
+                <div class="h-6 w-px bg-[#30363d]"></div>
+            </div>
+        </div>
+        </div>
+    </header>
+
+    <main class="main-content max-w-7xl mx-auto p-10 md:p-16">
+        <div class="grid grid-cols-[repeat(auto-fill,minmax(300px,1fr))] gap-6">
+            {% for link in links %}
+            <a href="{{ link.url }}" target="_blank" class="link-card relative group p-6 rounded-xl animate-card ripple"
+                style="--delay-index: {{ loop.index0 }};">
+
+                <div
+                    class="text-4xl filter grayscale group-hover:grayscale-0 transition-all duration-500 opacity-60 group-hover:opacity-100 mb-4 text-[#58a6ff]">
+                    {{ link.icon }}
+                </div>
+
+                <div
+                    class="absolute top-6 right-6 text-[#30363d] group-hover:text-[#58a6ff] transition-all duration-300 group-hover:translate-x-1">
+                    <span class="text-xl font-bold">→</span>
+                </div>
+
+                <h3 class="text-lg font-bold text-[#d1d9e0] mb-2 group-hover:text-[#58a6ff] transition-colors pr-8">{{
+                    link.name }}</h3>
+                <p
+                    class="text-[#8b99a7] text-sm leading-relaxed opacity-60 group-hover:opacity-90 transition-opacity font-medium line-clamp-2">
+                    {{ link.desc }}</p>
+            </a>
+            {% endfor %}
+        </div>
+
+        <footer class="mt-24 pt-8 border-t border-[#30363d] flex justify-between items-center">
+            <div class="flex flex-col space-y-1">
+                <p class="text-[#8b99a7] text-[10px] uppercase font-bold tracking-[0.2em] opacity-40">
+                    Copyright ©2025-2026 Actual Electronic Design Lab
+                </p>
+                <p class="text-[#8b99a7] text-[9px] uppercase font-medium tracking-[0.1em] opacity-20">
+                    Authorized Personnel Only
+                </p>
+            </div>
+            <div class="flex items-center space-x-3">
+                <div class="flex items-center px-3 py-1 bg-[#163d61]/20 border border-[#163d61] rounded-full">
+                    <div class="w-1.5 h-1.5 rounded-full bg-[#58a6ff] animate-pulse mr-2"></div>
+                    <span id="unix-ts"
+                        class="text-[9px] font-black text-[#58a6ff] uppercase tracking-widest font-mono"></span>
+                </div>
+            </div>
+            </div>
+        </footer>
+    </main>
+
+    <script>
+        function updateUnixTimestamp() {
+            const now = Math.floor(Date.now() / 1000);
+            document.getElementById('unix-ts').textContent = now;
+        }
+        setInterval(updateUnixTimestamp, 1000);
+        updateUnixTimestamp();
+    </script>
+
+    </main>
+</body>
+
+</html>

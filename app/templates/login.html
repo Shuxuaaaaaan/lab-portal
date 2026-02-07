@@ -1,0 +1,350 @@
+<!DOCTYPE html>
+<html lang="zh">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AEDL 在线工作站</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@100..800&display=swap" rel="stylesheet">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        :root {
+            --bg-body: #0b1219;
+            --bg-navbar: rgba(13, 37, 59, 0.95);
+            --bg-card: #16202c;
+            --bg-card-glass: rgba(22, 32, 44, 0.9);
+            --text-primary: #d1d9e0;
+            --text-secondary: #8b99a7;
+            --color-primary: #163d61;
+            --color-accent: #58a6ff;
+            --color-border: #30363d;
+            --color-hover: #cc0000;
+            --color-error: #ff3333;
+            --shadow-card: 0 4px 20px rgba(0, 0, 0, 0.5);
+            --radius-card: 24px;
+            --radius-btn: 12px;
+        }
+
+        body {
+            background-color: var(--bg-body);
+            margin: 0;
+            overflow: hidden;
+            color: var(--text-primary);
+        }
+
+        .glass-card {
+            background-color: var(--bg-card-glass);
+            backdrop-filter: blur(24px);
+            border: 1px solid var(--color-border);
+            box-shadow: var(--shadow-card);
+            border-radius: var(--radius-card);
+        }
+
+        .md-input-group {
+            position: relative;
+            margin-bottom: 5px;
+        }
+
+        .md-input {
+            width: 100%;
+            background-color: rgba(13, 17, 23, 0.6);
+            border: 1px solid var(--color-border);
+            border-radius: var(--radius-btn);
+            color: var(--text-primary);
+            padding: 16px 16px;
+            font-family: inherit;
+            font-size: 14px;
+            transition: all 0.2s ease;
+            outline: none;
+        }
+
+        .md-input:focus {
+            border-color: var(--color-accent);
+            background-color: rgba(13, 17, 23, 0.9);
+            box-shadow: 0 0 0 3px rgba(88, 166, 255, 0.2);
+        }
+
+        .md-label {
+            position: absolute;
+            left: 14px;
+            top: 16px;
+            color: var(--text-secondary);
+            font-size: 14px;
+            font-weight: bold;
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            pointer-events: none;
+            transition: all 0.2s ease;
+            background-color: transparent;
+            padding: 0 4px;
+            line-height: 1;
+        }
+
+        .md-input:focus~.md-label,
+        .md-input:not(:placeholder-shown)~.md-label {
+            top: -8px;
+            left: 12px;
+            font-size: 11px;
+            color: var(--color-accent);
+            background-color: var(--bg-card-glass);
+            border-radius: 4px;
+            backdrop-filter: blur(4px);
+        }
+
+        .btn-action {
+            background-color: var(--color-primary);
+            color: #ffffff;
+            border-radius: var(--radius-btn);
+            transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+        }
+
+        .btn-action:hover {
+            background-color: var(--color-hover);
+            transform: translateY(-1px);
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+        }
+
+        @keyframes slideInRight {
+            from {
+                transform: translateX(100%);
+                opacity: 0;
+            }
+
+            to {
+                transform: translateX(0);
+                opacity: 1;
+            }
+        }
+
+        .animate-slide-in {
+            animation: slideInRight 0.8s cubic-bezier(0.2, 0.8, 0.2, 1) forwards;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: scale(0.95);
+            }
+
+            to {
+                opacity: 1;
+                transform: scale(1);
+            }
+        }
+
+        .animate-fade-in {
+            animation: fadeIn 1.2s ease-out forwards;
+        }
+    </style>
+</head>
+
+<body class="flex h-screen w-full font-['JetBrains_Mono'] tracking-tight bg-[#0b1219] relative overflow-hidden">
+
+    <canvas id="particleCanvas" class="absolute inset-0 z-0"></canvas>
+
+    <div class="relative z-10 w-full h-full flex">
+
+        <div class="hidden md:flex flex-1 items-center justify-center p-12">
+            <div class="w-full max-w-lg flex items-center justify-center">
+                <img src="/static/logo.png" alt="AEDL Logo"
+                    class="w-full h-auto object-contain max-h-[800px] drop-shadow-2xl animate-fade-in">
+            </div>
+        </div>
+
+        <div class="w-full md:w-[500px] lg:w-[600px] flex items-center justify-center relative animate-slide-in">
+            <div
+                class="glass-card w-full max-w-md mx-8 p-10 rounded-3xl backdrop-blur-xl bg-[#16202c]/95 border border-[#30363d]/50">
+                <div class="mb-10">
+                    <h1 class="text-[#d1d9e0] text-3xl font-bold tracking-tight">
+                        <span class="text-[#ff0000]">AEDL</span>
+                        <span class="text-[#163d61]">Workstation</span>
+                    </h1>
+                    <div class="h-1 w-8 bg-[#58a6ff] mt-3"></div>
+                    <p class="text-[#8b99a7] text-sm mt-5 opacity-80 tracking-wide">统一身份验证系统</p>
+                </div>
+
+                {% if request.query_params.get('error') %}
+                <div
+                    class="border border-[#ff3333]/30 bg-[#ff3333]/10 text-[#ff3333] p-4 rounded-lg mb-6 text-sm flex items-center gap-3">
+                    <span class="font-bold">!</span>
+                    <span>用户名或密码错误，请核实后重试</span>
+                </div>
+                {% endif %}
+
+                <form action="/login" method="post" class="space-y-6">
+                    <div class="md-input-group mt-6">
+                        <input type="text" name="username" id="username" class="md-input" required placeholder=" ">
+                        <label for="username" class="md-label">Identity / 账号</label>
+                    </div>
+
+                    <div class="md-input-group mt-6">
+                        <input type="password" name="password" id="password" class="md-input" required placeholder=" ">
+                        <label for="password" class="md-label">Password / 密码</label>
+                    </div>
+
+                    <div class="pt-4">
+                        <button type="submit"
+                            class="btn-action w-full font-bold py-4 flex items-center justify-center group shadow-lg">
+                            认证并进入
+                            <span class="ml-2 group-hover:translate-x-1 transition-transform">→</span>
+                        </button>
+                    </div>
+                </form>
+
+                <div class="mt-12 text-left border-t border-[#30363d]/50 pt-6">
+                    <p
+                        class="text-[#8b99a7] text-[10px] uppercase font-bold tracking-widest opacity-40 leading-relaxed">
+                        &copy; 2025-2026 Actual Electronic Design Lab.<br>
+                        All Rights Reserved.
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const canvas = document.getElementById('particleCanvas');
+        const ctx = canvas.getContext('2d');
+        let width, height;
+        let particles = [];
+        let mouse = { x: -1000, y: -1000, vx: 0, vy: 0 };
+
+        const PARTICLE_COUNT = 500;
+        const BASE_SPEED = 0.5;
+        const COLOR_BASE = { h: 210, s: 60, l: 30 };
+        const COLOR_VAR = 20;
+
+        function getForce(x, y, z) {
+            const scale = 0.002;
+            const angle = (
+                Math.sin(x * scale + z * 0.1) * 2 +
+                Math.cos(y * scale + z * 0.2) +
+                Math.sin((x + y) * scale * 2 + z * 0.5)
+            ) * Math.PI;
+            return angle;
+        }
+
+        class Particle {
+            constructor() {
+                this.init(true);
+            }
+
+            init(randomY = false) {
+                this.x = Math.random() * width;
+                this.y = randomY ? Math.random() * height : Math.random() * height;
+                this.age = 0;
+                this.life = Math.random() * 300 + 100;
+                this.baseSize = Math.random() * 1.5 + 0.5;
+                this.size = this.baseSize;
+                this.hueOffset = Math.random() * COLOR_VAR - COLOR_VAR / 2;
+            }
+
+            update(time) {
+                this.age++;
+                if (this.age > this.life || Math.random() < 0.002) {
+                    this.init();
+                    this.x = Math.random() * width;
+                    this.y = Math.random() * height;
+                    return;
+                }
+
+                const angle = getForce(this.x, this.y, time * 0.2);
+
+                let vx = Math.cos(angle) * BASE_SPEED;
+                let vy = Math.sin(angle) * BASE_SPEED;
+                const dx = this.x - mouse.x;
+                const dy = this.y - mouse.y;
+                const dist = Math.sqrt(dx * dx + dy * dy);
+                const interactRange = 250;
+
+                if (dist < interactRange) {
+                    const interactFactor = (1 - dist / interactRange);
+
+                    vx += mouse.vx * interactFactor * 0.1;
+                    vy += mouse.vy * interactFactor * 0.1;
+
+                    const angleToMouse = Math.atan2(dy, dx);
+
+                    vx += Math.cos(angleToMouse + Math.PI / 2) * interactFactor * 0.5;
+                    vy += Math.sin(angleToMouse + Math.PI / 2) * interactFactor * 0.5;
+                }
+
+                this.x += vx;
+                this.y += vy;
+
+                const speed = Math.sqrt(vx * vx + vy * vy);
+                this.size = this.baseSize * (0.8 + speed * 1.5);
+
+                const hue = COLOR_BASE.h + this.hueOffset + speed * 30 + Math.sin(this.x * 0.01) * 10;
+                const light = COLOR_BASE.l + speed * 20;
+
+                const alpha = Math.min(this.age / 50, (this.life - this.age) / 50, 0.8) * Math.min(speed * 1.5, 1);
+
+                this.color = `hsla(${hue}, ${COLOR_BASE.s}%, ${light}%, ${alpha})`;
+
+                if (this.x < 0) this.x = width;
+                else if (this.x > width) this.x = 0;
+                if (this.y < 0) this.y = height;
+                else if (this.y > height) this.y = 0;
+            }
+
+            draw() {
+                ctx.fillStyle = this.color;
+                ctx.beginPath();
+                ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
+                ctx.fill();
+            }
+        }
+
+        function initParticles() {
+            width = window.innerWidth;
+            height = window.innerHeight;
+            canvas.width = width;
+            canvas.height = height;
+            particles = Array.from({ length: PARTICLE_COUNT }, () => new Particle());
+        }
+
+        let time = 0;
+        let lastMouse = { x: 0, y: 0 };
+
+        window.addEventListener('mousemove', e => {
+            mouse.vx = e.clientX - lastMouse.x;
+            mouse.vy = e.clientY - lastMouse.y;
+            mouse.x = e.clientX;
+            mouse.y = e.clientY;
+            lastMouse.x = e.clientX;
+            lastMouse.y = e.clientY;
+
+            mouse.vx = Math.min(Math.max(mouse.vx, -10), 10);
+            mouse.vy = Math.min(Math.max(mouse.vy, -10), 10);
+        });
+
+        function animate() {
+
+            ctx.fillStyle = 'rgba(11, 18, 25, 0.25)';
+            ctx.fillRect(0, 0, width, height);
+
+            time += 0.01;
+
+            mouse.vx *= 0.95;
+            mouse.vy *= 0.95;
+
+            particles.forEach(p => {
+                p.update(time);
+                p.draw();
+            });
+            requestAnimationFrame(animate);
+        }
+
+        window.addEventListener('resize', initParticles);
+        initParticles();
+        animate();
+    </script>
+</body>
+
+</html>

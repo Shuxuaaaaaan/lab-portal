@@ -1,0 +1,35 @@
+
+基础路径与环境
+项目目录：~/services/lab-portal Docker 网络：web-network (与 NPM/Halo 共享) 主控台端口：8000 (仅内网暴露给 NPM) 数据库文件：./data/users.db (SQLite)
+
+容器基础操作
+进入项目目录
+cd ~/services/lab-portal
+构建并启动服务 (修改 Dockerfile 或新增依赖后使用)
+docker compose up -d --build
+重启服务 (修改 main.py 代码或 HTML 模板后使用)
+docker compose restart lab-portal
+查看实时运行日志 (排查登录故障)
+docker compose logs -f lab-portal
+
+成员管理命令 (manage_users.py)
+查看所有用户列表
+docker exec -it lab-portal python3 app/manage_users.py list
+添加新用户
+docker exec -it lab-portal python3 app/manage_users.py add [用户名] [密码]
+修改用户密码
+docker exec -it lab-portal python3 app/manage_users.py pwd [用户名] [新密码]
+删除用户
+docker exec -it lab-portal python3 app/manage_users.py del [用户名]
+
+安全审计与日志查看 (logs.py)
+查看最近 10 条登录审计记录 (含 IP 和时间)
+docker exec -it lab-portal python3 app/logs.py
+手动进入数据库查询 (需 Dockerfile 安装了 sqlite3)
+docker exec -it lab-portal sqlite3 data/users.db "SELECT * FROM audit_logs;"
+
+子域名Nginx 配置
+在 NPM 的子域名 (如 file.aedl.top) 的 Advanced 选项卡中粘贴以下内容：
+location /internal-auth { internal; proxy_pass http://lab-portal:8000/verify; proxy_pass_request_body off; proxy_set_header Content-Length ""; proxy_set_header X-Original-URI $request_uri; }
+location / { auth_request /internal-auth; error_page 401 = @error401; proxy_pass $forward_scheme://$server:$port; }
+location @error401 { return 302 https://lab.aedl.top/login; }
