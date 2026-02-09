@@ -1,6 +1,7 @@
 import sqlite3
 from datetime import datetime
 import os
+import json
 from fastapi import FastAPI, Request, Form, Response, Depends
 from fastapi.responses import HTMLResponse, RedirectResponse
 from fastapi.templating import Jinja2Templates
@@ -68,26 +69,12 @@ async def home(request: Request):
         return RedirectResponse(url="/login")
     
     # 定义导航链接
-    NAV_LINKS = [
-        {"name": "文件传输柜", "url": "https://filebox.aedl.top", "icon": "🚀", "desc": "临时文件快传系统"},
-        {"name": "资料库", "url": "https://cloud.aedl.top", "icon": "📂", "desc": "内部文件，切勿外传！"},
-        {"name": "文章主页", "url": "https://www.aedl.top", "icon": "📃", "desc": "实验室文章主页"},
-        {"name": "打印机状态", "url": "https://3Dprinter.aedl.top", "icon": "🔩", "desc": "查看3D打印机状态信息"},
-        {"name": "Overleaf", "url": "https://www.overleaf.com", "icon": "📝", "desc": "在线 LaTeX 编辑与协作平台"},
-        {"name": "StackEdit", "url": "https://stackedit.io/app#", "icon": "✍️", "desc": "在线 Markdown 编辑器"},
-        {"name": "Diagrams.net", "url": "https://app.diagrams.net", "icon": "📊", "desc": "原 draw.io，流程图及架构图绘制工具"},
-        {"name": "ADI Filter Wizard", "url": "https://tools.analog.com/en/filterwizard/", "icon": "⚡", "desc": "亚德诺半导体滤波器设计向导，支持幅频特性仿真"},
-        {"name": "LCEDA Pro", "url": "https://pro.lceda.cn/editor", "icon": "📐", "desc": "立创EDA在线专业版"},
-        {"name": "Falstad Circuit", "url": "https://www.falstad.com/circuit/", "icon": "⚡", "desc": "直观的在线电路物理模拟仿真器，支持电流动画"},
-        {"name": "Wokwi", "url": "https://wokwi.com", "icon": "🤖", "desc": "Arduino、ESP32 等平台的在线嵌入式仿真平台"},
-        {"name": "波特律动串口助手", "url": "https://serial.baud-dance.com/#/", "icon": "📟", "desc": "免安装浏览器串口调试工具"},
-        {"name": "CyberChef", "url": "https://gchq.github.io/CyberChef/", "icon": "🍳", "desc": "“数据处理工具，涵盖加解密、进制转换等"},
-        {"name": "半导小芯", "url": "https://www.semiee.com", "icon": "📖", "desc": "芯片 Datasheet 数据手册查询平台"},
-        {"name": "WolframAlpha", "url": "https://www.wolframalpha.com", "icon": "🔢", "desc": "计算知识引擎，可用于解复杂的工程数学方程"},
-        {"name": "JSON.cn", "url": "https://www.json.cn", "icon": "🗂️", "desc": "简洁明了的在线 JSON 解析、格式化与校验工具"},
-        {"name": "Regex101", "url": "https://regex101.com", "icon": "🔍", "desc": "正则表达式在线测试、解释与调试利器"},
-        {"name": "Mermaid Live", "url": "https://mermaid.live", "icon": "🧜‍♀️", "desc": "基于代码生成流程图、时序图的在线编辑器"}
-    ]
+    # 加载导航链接
+    try:
+        with open("data/nav_links.json", "r", encoding="utf-8") as f:
+            NAV_LINKS = json.load(f)
+    except FileNotFoundError:
+        NAV_LINKS = []  # 如果文件不存在，默认为空列表或者提供一些默认值
     return templates.TemplateResponse("index.html", {"request": request, "links": NAV_LINKS, "username": user})
 
 @app.get("/verify")
