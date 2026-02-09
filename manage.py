@@ -43,21 +43,25 @@ def list_users():
     if not conn: return
     try:
         cursor = conn.cursor()
-        cursor.execute("SELECT id, username FROM users")
+        cursor.execute("SELECT id, account, username, role FROM users")
         users = cursor.fetchall()
         print("\n[ 用户列表 ]")
-        print(f"{'ID':<5} | {'用户名':<20}")
-        print("-" * 30)
+        print(f"{'ID':<5} | {'账号':<15} | {'用户名':<15} | {'权限组':<10}")
+        print("-" * 60)
         for u in users:
-            print(f"{u[0]:<5} | {u[1]:<20}")
+            print(f"{u[0]:<5} | {u[1]:<15} | {u[2]:<15} | {u[3]:<10}")
     except Exception as e:
         print(f"读取用户失败: {e}")
     finally:
         conn.close()
 
 def add_user():
-    username = input("请输入新用户名 (留空取消): ").strip()
-    if not username: return
+    account = input("请输入新账号 (Account, 留空取消): ").strip()
+    if not account: return
+    
+    username = input(f"请输入用户名 (Username, 默认同账号): ").strip()
+    if not username: username = account
+    
     password = input("请输入密码: ").strip()
     if not password: return
     
@@ -66,11 +70,12 @@ def add_user():
     conn = connect_db()
     if not conn: return
     try:
-        conn.execute("INSERT INTO users (username, password_hash) VALUES (?, ?)", (username, password_hash))
+        # 默认为 user 权限
+        conn.execute("INSERT INTO users (account, username, password_hash, role) VALUES (?, ?, ?, 'user')", (account, username, password_hash))
         conn.commit()
-        print(f"\n成功添加用户: {username}")
+        print(f"\n成功添加用户: {username} ({account})")
     except sqlite3.IntegrityError:
-        print(f"\n错误: 用户名 '{username}' 已存在")
+        print(f"\n错误: 账号或用户名已存在")
     except Exception as e:
         print(f"\n操作失败: {e}")
     finally:
@@ -87,7 +92,7 @@ def delete_user():
     if not conn: return
     try:
         cursor = conn.cursor()
-        cursor.execute("DELETE FROM users WHERE username=?", (username,))
+        cursor.execute("DELETE FROM users WHERE account=?", (username,)) # 这里变量名还是 username 但实际是 account
         if cursor.rowcount > 0:
             conn.commit()
             print(f"\n已删除用户: {username}")
@@ -110,12 +115,37 @@ def change_password():
     if not conn: return
     try:
         cursor = conn.cursor()
-        cursor.execute("UPDATE users SET password_hash=? WHERE username=?", (password_hash, username))
+        cursor.execute("UPDATE users SET password_hash=? WHERE account=?", (password_hash, username)) # username 变量存的是 account
         if cursor.rowcount > 0:
             conn.commit()
             print(f"\n用户 '{username}' 的密码已更新")
         else:
             print(f"\n未找到用户: {username}")
+    except Exception as e:
+        print(f"\n操作失败: {e}")
+    finally:
+        conn.close()
+
+def change_role():
+    account = input("请输入用户账号 (留空取消): ").strip()
+    if not account: return
+    
+    print("可用权限: user, admin")
+    new_role = input("请输入新权限组: ").strip().lower()
+    if new_role not in ['user', 'admin']:
+        print("无效的权限组")
+        return
+
+    conn = connect_db()
+    if not conn: return
+    try:
+        cursor = conn.cursor()
+        cursor.execute("UPDATE users SET role=? WHERE account=?", (new_role, account))
+        if cursor.rowcount > 0:
+            conn.commit()
+            print(f"\n用户 '{account}' 的权限已更新为 {new_role}")
+        else:
+            print(f"\n未找到用户: {account}")
     except Exception as e:
         print(f"\n操作失败: {e}")
     finally:
@@ -130,6 +160,7 @@ def manage_users_menu():
         print("2. 添加用户")
         print("3. 删除用户")
         print("4. 修改密码")
+        print("5. 修改权限")
         print("0. 返回上级")
         
         choice = input("\n选项: ").strip()
@@ -146,6 +177,9 @@ def manage_users_menu():
             input("\n按回车键继续...")
         elif choice == '4':
             change_password()
+            input("\n按回车键继续...")
+        elif choice == '5':
+            change_role()
             input("\n按回车键继续...")
 
 # ================= 日志查看功能 =================
