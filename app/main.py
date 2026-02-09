@@ -100,9 +100,22 @@ async def home(request: Request):
     except FileNotFoundError:
         NAV_LINKS = []  # 如果文件不存在，默认为空列表或者提供一些默认值
     
+    # 加载问候语和一言
+    try:
+        with open("data/greetings.json", "r", encoding="utf-8") as f:
+            greeting_data = json.load(f)
+    except FileNotFoundError:
+        greeting_data = {"greetings": {}, "hitokoto": []}
+
     # 获取显示名，如果session里没有（旧session），则回退到 user (account)
     display_name = request.session.get("display_name", user)
-    return templates.TemplateResponse("index.html", {"request": request, "links": NAV_LINKS, "username": display_name})
+    return templates.TemplateResponse("index.html", {
+        "request": request, 
+        "links": NAV_LINKS, 
+        "username": display_name,
+        "greetings": greeting_data.get("greetings", {}),
+        "hitokoto_list": greeting_data.get("hitokoto", [])
+    })
 
 @app.get("/verify")
 async def auth_verify(request: Request):

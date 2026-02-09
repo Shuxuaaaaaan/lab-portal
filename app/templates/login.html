@@ -125,6 +125,24 @@
             animation: slideInRight 0.8s cubic-bezier(0.2, 0.8, 0.2, 1) forwards;
         }
 
+        @keyframes logoEntrance {
+            from {
+                opacity: 0;
+                transform: scale(0.8) translateY(40px);
+                filter: blur(10px);
+            }
+
+            to {
+                opacity: 1;
+                transform: scale(1) translateY(0);
+                filter: blur(0);
+            }
+        }
+
+        .animate-logo-in {
+            animation: logoEntrance 1.8s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+        }
+
         @keyframes fadeIn {
             from {
                 opacity: 0;
@@ -150,9 +168,9 @@
     <div class="relative z-10 w-full h-full flex">
 
         <div class="hidden md:flex flex-1 items-center justify-center p-12">
-            <div class="w-full max-w-lg flex items-center justify-center">
+            <div class="w-full max-w-2xl flex items-center justify-center">
                 <img src="/static/logo.png" alt="AEDL Logo"
-                    class="w-full h-auto object-contain max-h-[800px] drop-shadow-2xl animate-fade-in">
+                    class="w-full h-auto object-contain max-h-[800px] drop-shadow-2xl animate-logo-in">
             </div>
         </div>
 
@@ -162,7 +180,7 @@
                 <div class="mb-10">
                     <h1 class="text-[#d1d9e0] text-3xl font-bold tracking-tight">
                         <span class="text-[#ff0000]">AEDL</span>
-                        <span class="text-[#163d61]">Workstation</span>
+                        <span class="text-[#37679d]">Workstation</span>
                     </h1>
                     <div class="h-1 w-8 bg-[#58a6ff] mt-3"></div>
                     <p class="text-[#8b99a7] text-sm mt-5 opacity-80 tracking-wide">统一身份验证系统</p>
@@ -210,139 +228,95 @@
     <script>
         const canvas = document.getElementById('particleCanvas');
         const ctx = canvas.getContext('2d');
-        let width, height;
-        let particles = [];
-        let mouse = { x: -1000, y: -1000, vx: 0, vy: 0 };
 
-        const PARTICLE_COUNT = 500;
-        const BASE_SPEED = 0.5;
-        const COLOR_BASE = { h: 210, s: 60, l: 30 };
-        const COLOR_VAR = 20;
+        // Configuration
+        const CONFIG = {
+            linesPerHalf: 45,
+            vertexCount: 150, // Increased for smoother thickness variation
+            mouseRadius: 300,
+            amplitudeBase: 30,
+            speedBase: 0.002
+        };
 
-        function getForce(x, y, z) {
-            const scale = 0.002;
-            const angle = (
-                Math.sin(x * scale + z * 0.1) * 2 +
-                Math.cos(y * scale + z * 0.2) +
-                Math.sin((x + y) * scale * 2 + z * 0.5)
-            ) * Math.PI;
-            return angle;
-        }
+        let width, height, cx, cy;
+        let time = 0;
 
-        class Particle {
-            constructor() {
-                this.init(true);
-            }
-
-            init(randomY = false) {
-                this.x = Math.random() * width;
-                this.y = randomY ? Math.random() * height : Math.random() * height;
-                this.age = 0;
-                this.life = Math.random() * 300 + 100;
-                this.baseSize = Math.random() * 1.5 + 0.5;
-                this.size = this.baseSize;
-                this.hueOffset = Math.random() * COLOR_VAR - COLOR_VAR / 2;
-            }
-
-            update(time) {
-                this.age++;
-                if (this.age > this.life || Math.random() < 0.002) {
-                    this.init();
-                    this.x = Math.random() * width;
-                    this.y = Math.random() * height;
-                    return;
-                }
-
-                const angle = getForce(this.x, this.y, time * 0.2);
-
-                let vx = Math.cos(angle) * BASE_SPEED;
-                let vy = Math.sin(angle) * BASE_SPEED;
-                const dx = this.x - mouse.x;
-                const dy = this.y - mouse.y;
-                const dist = Math.sqrt(dx * dx + dy * dy);
-                const interactRange = 250;
-
-                if (dist < interactRange) {
-                    const interactFactor = (1 - dist / interactRange);
-
-                    vx += mouse.vx * interactFactor * 0.1;
-                    vy += mouse.vy * interactFactor * 0.1;
-
-                    const angleToMouse = Math.atan2(dy, dx);
-
-                    vx += Math.cos(angleToMouse + Math.PI / 2) * interactFactor * 0.5;
-                    vy += Math.sin(angleToMouse + Math.PI / 2) * interactFactor * 0.5;
-                }
-
-                this.x += vx;
-                this.y += vy;
-
-                const speed = Math.sqrt(vx * vx + vy * vy);
-                this.size = this.baseSize * (0.8 + speed * 1.5);
-
-                const hue = COLOR_BASE.h + this.hueOffset + speed * 30 + Math.sin(this.x * 0.01) * 10;
-                const light = COLOR_BASE.l + speed * 20;
-
-                const alpha = Math.min(this.age / 50, (this.life - this.age) / 50, 0.8) * Math.min(speed * 1.5, 1);
-
-                this.color = `hsla(${hue}, ${COLOR_BASE.s}%, ${light}%, ${alpha})`;
-
-                if (this.x < 0) this.x = width;
-                else if (this.x > width) this.x = 0;
-                if (this.y < 0) this.y = height;
-                else if (this.y > height) this.y = 0;
-            }
-
-            draw() {
-                ctx.fillStyle = this.color;
-                ctx.beginPath();
-                ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
-                ctx.fill();
-            }
-        }
-
-        function initParticles() {
+        // Resize handler
+        function resize() {
             width = window.innerWidth;
             height = window.innerHeight;
             canvas.width = width;
             canvas.height = height;
-            particles = Array.from({ length: PARTICLE_COUNT }, () => new Particle());
+            cx = width / 2;
+            cy = height / 2;
+
+            if (width < 768) {
+                CONFIG.linesPerHalf = 25;
+                CONFIG.vertexCount = 100;
+            } else {
+                CONFIG.linesPerHalf = 45;
+                CONFIG.vertexCount = 150;
+            }
         }
 
-        let time = 0;
-        let lastMouse = { x: 0, y: 0 };
+        window.addEventListener('resize', resize);
 
-        window.addEventListener('mousemove', e => {
-            mouse.vx = e.clientX - lastMouse.x;
-            mouse.vy = e.clientY - lastMouse.y;
-            mouse.x = e.clientX;
-            mouse.y = e.clientY;
-            lastMouse.x = e.clientX;
-            lastMouse.y = e.clientY;
-
-            mouse.vx = Math.min(Math.max(mouse.vx, -10), 10);
-            mouse.vy = Math.min(Math.max(mouse.vy, -10), 10);
-        });
-
-        function animate() {
-
-            ctx.fillStyle = 'rgba(11, 18, 25, 0.25)';
+        function drawRefinedWaves() {
+            ctx.fillStyle = 'rgba(11, 18, 25, 1)';
             ctx.fillRect(0, 0, width, height);
 
-            time += 0.01;
+            ctx.lineCap = 'round';
 
-            mouse.vx *= 0.95;
-            mouse.vy *= 0.95;
+            const halves = [-1, 1];
 
-            particles.forEach(p => {
-                p.update(time);
-                p.draw();
+            halves.forEach(dir => {
+                for (let i = 0; i < CONFIG.linesPerHalf; i++) {
+                    const progress = i / (CONFIG.linesPerHalf - 1); // 0 to 1
+
+                    // Base positioning
+                    const yOffset = Math.pow(progress, 1.2) * (height / 2 - 20) + 20;
+                    const baseY = cy + dir * yOffset;
+
+                    ctx.beginPath();
+
+                    // 1. Dynamic Thickness
+                    // Base thickness varies by line index + slow sine wave over time
+                    const baseWidth = 0.5 + Math.sin(time * 2 + i * 0.5) * 0.5 + progress * 1.5;
+                    ctx.lineWidth = Math.max(0.5, baseWidth);
+
+                    // Draw line segments
+                    for (let j = 0; j <= CONFIG.vertexCount; j++) {
+                        const x = (j / CONFIG.vertexCount) * width;
+
+                        // Wave Motion
+                        const noise =
+                            Math.sin(x * 0.003 + time * (1 + progress) + i * 0.2) * CONFIG.amplitudeBase * (1 + progress) +
+                            Math.sin(x * 0.01 - time * 2) * 5;
+
+                        let py = baseY + noise;
+                        let px = x;
+
+                        if (j === 0) ctx.moveTo(px, py);
+                        else ctx.lineTo(px, py);
+                    }
+
+                    const baseAlpha = 0.08 + progress * 0.3 + Math.sin(time * 3 + i) * 0.04;
+                    ctx.strokeStyle = `rgba(88, 166, 255, ${baseAlpha})`;
+                    ctx.shadowBlur = 0;
+                    ctx.stroke();
+                }
             });
+        }
+
+        function animate() {
+            time += CONFIG.speedBase;
+            if (time > 10000) time = 0;
+
+            drawRefinedWaves();
             requestAnimationFrame(animate);
         }
 
-        window.addEventListener('resize', initParticles);
-        initParticles();
+        resize();
         animate();
     </script>
 </body>

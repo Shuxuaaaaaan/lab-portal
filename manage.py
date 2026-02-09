@@ -26,7 +26,7 @@ def clear_screen():
 
 def print_header():
     print("=" * 60)
-    print("           Lab Portal 综合管理控制台 (v2.0)")
+    print("           Lab Portal 综合管理控制台")
     print("=" * 60)
 
 def connect_db():
