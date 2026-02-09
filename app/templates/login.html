@@ -28,7 +28,7 @@
         }
 
         body {
-            background-color: var(--bg-body);
+            background-color: #000000;
             margin: 0;
             overflow: hidden;
             color: var(--text-primary);
@@ -109,117 +109,191 @@
             box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
         }
 
-        @keyframes slideInRight {
+        /* ========== Entrance Animation System ========== */
+
+        /* Canvas background fade-in from pure black */
+        #particleCanvas {
+            opacity: 0;
+        }
+
+        .canvas-fade-in {
+            animation: canvasFadeIn 2s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+        }
+
+        @keyframes canvasFadeIn {
             from {
-                transform: translateX(100%);
                 opacity: 0;
             }
 
             to {
-                transform: translateX(0);
                 opacity: 1;
             }
         }
 
-        .animate-slide-in {
-            animation: slideInRight 0.8s cubic-bezier(0.2, 0.8, 0.2, 1) forwards;
+        /* Logo - starts at center, then moves left */
+        .logo-container {
+            position: absolute;
+            left: 50%;
+            top: 50%;
+            transform: translate(-50%, -50%);
+            opacity: 0;
+            z-index: 20;
+            transition: none;
         }
 
-        @keyframes logoEntrance {
-            from {
+        /* Phase 1: Logo appears at center */
+        .logo-phase-1 {
+            animation: logoAppear 1.4s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+        }
+
+        @keyframes logoAppear {
+            0% {
                 opacity: 0;
-                transform: scale(0.8) translateY(40px);
-                filter: blur(10px);
+                transform: translate(-50%, -50%) scale(0.8);
+                filter: blur(20px);
             }
 
-            to {
+            100% {
                 opacity: 1;
-                transform: scale(1) translateY(0);
+                transform: translate(-50%, -50%) scale(1.1);
                 filter: blur(0);
             }
         }
 
-        .animate-logo-in {
-            animation: logoEntrance 1.8s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+        /* Phase 2: Logo slides to the left */
+        .logo-phase-2 {
+            animation: logoSlideLeft 1s cubic-bezier(0.16, 1, 0.3, 1) forwards;
         }
 
-        @keyframes fadeIn {
-            from {
-                opacity: 0;
-                transform: scale(0.95);
-            }
-
-            to {
+        @keyframes logoSlideLeft {
+            0% {
                 opacity: 1;
-                transform: scale(1);
+                left: 50%;
+                transform: translate(-50%, -50%) scale(1.1);
+            }
+
+            100% {
+                opacity: 1;
+                left: 32%;
+                transform: translate(-50%, -50%) scale(0.95);
             }
         }
 
-        .animate-fade-in {
-            animation: fadeIn 1.2s ease-out forwards;
+        /* Login card - slides in from right edge */
+        .login-card-container {
+            opacity: 0;
+            transform: translateX(100vw);
+        }
+
+        .login-card-slide-in {
+            animation: cardSlideIn 1.2s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+        }
+
+        @keyframes cardSlideIn {
+            0% {
+                opacity: 0;
+                transform: translateX(100vw);
+            }
+
+            30% {
+                opacity: 1;
+            }
+
+            100% {
+                opacity: 1;
+                transform: translateX(0);
+            }
+        }
+
+        /* Mobile-specific: simpler card entrance */
+        .login-card-slide-in-mobile {
+            animation: cardSlideInMobile 1s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+        }
+
+        @keyframes cardSlideInMobile {
+            0% {
+                opacity: 0;
+                transform: translateX(50vw);
+            }
+
+            40% {
+                opacity: 1;
+            }
+
+            100% {
+                opacity: 1;
+                transform: translateX(0);
+            }
+        }
+
+        /* Final state for desktop layout */
+        .layout-final .logo-container {
+            position: relative;
+            left: auto;
+            top: auto;
+            transform: none;
+            opacity: 1;
         }
     </style>
 </head>
 
-<body class="flex h-screen w-full font-['JetBrains_Mono'] tracking-tight bg-[#0b1219] relative overflow-hidden">
+<body class="flex h-screen w-full font-['JetBrains_Mono'] tracking-tight bg-black relative overflow-hidden">
 
     <canvas id="particleCanvas" class="absolute inset-0 z-0"></canvas>
 
-    <div class="relative z-10 w-full h-full flex">
+    <div id="mainLayout" class="relative z-10 w-full h-full flex">
 
-        <div class="hidden md:flex flex-1 items-center justify-center p-12">
-            <div class="w-full max-w-2xl flex items-center justify-center">
+        <!-- Logo Container (Desktop only) -->
+        <div id="logoContainer" class="logo-container hidden md:flex items-center justify-center">
+            <div class="w-full max-w-2xl flex items-center justify-center p-12">
                 <img src="/static/logo.png" alt="AEDL Logo"
-                    class="w-full h-auto object-contain max-h-[800px] drop-shadow-2xl animate-logo-in">
+                    class="w-full h-auto object-contain max-h-[600px] drop-shadow-2xl">
             </div>
         </div>
 
-        <div class="w-full md:w-[500px] lg:w-[600px] flex items-center justify-center relative animate-slide-in">
-            <div
-                class="glass-card w-full max-w-md mx-8 p-10 rounded-3xl backdrop-blur-xl bg-[#16202c]/95 border border-[#30363d]/50">
-                <div class="mb-10">
-                    <h1 class="text-[#d1d9e0] text-3xl font-bold tracking-tight">
-                        <span class="text-[#ff0000]">AEDL</span>
-                        <span class="text-[#37679d]">Workstation</span>
-                    </h1>
-                    <div class="h-1 w-8 bg-[#58a6ff] mt-3"></div>
-                    <p class="text-[#8b99a7] text-sm mt-5 opacity-80 tracking-wide">统一身份验证系统</p>
-                </div>
-
-                {% if request.query_params.get('error') %}
+        <!-- Login Card Container -->
+        <div id="loginCardContainer"
+            class="login-card-container w-full md:w-auto md:absolute md:right-0 md:top-0 md:bottom-0 flex items-center justify-center">
+            <div class="md:w-[500px] lg:w-[600px] flex items-center justify-center relative">
                 <div
-                    class="border border-[#ff3333]/30 bg-[#ff3333]/10 text-[#ff3333] p-4 rounded-lg mb-6 text-sm flex items-center gap-3">
-                    <span class="font-bold">!</span>
-                    <span>用户名或密码错误，请核实后重试</span>
-                </div>
-                {% endif %}
-
-                <form action="/login" method="post" class="space-y-6">
-                    <div class="md-input-group mt-6">
-                        <input type="text" name="login_id" id="login_id" class="md-input" required placeholder=" ">
-                        <label for="login_id" class="md-label">账号 / 用户名</label>
+                    class="glass-card w-full max-w-md mx-8 p-10 rounded-3xl backdrop-blur-xl bg-[#16202c]/95 border border-[#30363d]/50">
+                    <div class="mb-10">
+                        <h1 class="text-[#d1d9e0] text-3xl font-bold tracking-tight">
+                            <span class="text-[#ff0000]">AEDL</span>
+                            <span class="text-[#37679d]">Workstation</span>
+                        </h1>
+                        <div class="h-1 w-8 bg-[#58a6ff] mt-3"></div>
+                        <p class="text-[#8b99a7] text-sm mt-5 opacity-80 tracking-wide">统一身份验证系统</p>
                     </div>
 
-                    <div class="md-input-group mt-6">
-                        <input type="password" name="password" id="password" class="md-input" required placeholder=" ">
-                        <label for="password" class="md-label">密码</label>
+                    {% if request.query_params.get('error') %}
+                    <div
+                        class="border border-[#ff3333]/30 bg-[#ff3333]/10 text-[#ff3333] p-4 rounded-lg mb-6 text-sm flex items-center gap-3">
+                        <span class="font-bold">!</span>
+                        <span>用户名或密码错误，请核实后重试</span>
                     </div>
+                    {% endif %}
 
-                    <div class="pt-4">
-                        <button type="submit"
-                            class="btn-action w-full font-bold py-4 flex items-center justify-center group shadow-lg">
-                            认证并进入
-                            <span class="ml-2 group-hover:translate-x-1 transition-transform">→</span>
-                        </button>
-                    </div>
-                </form>
+                    <form action="/login" method="post" class="space-y-6">
+                        <div class="md-input-group mt-6">
+                            <input type="text" name="login_id" id="login_id" class="md-input" required placeholder=" ">
+                            <label for="login_id" class="md-label">账号 / 用户名</label>
+                        </div>
 
-                <div class="mt-12 text-left border-t border-[#30363d]/50 pt-6">
-                    <p
-                        class="text-[#8b99a7] text-[10px] uppercase font-bold tracking-widest opacity-40 leading-relaxed">
-                        &copy; 2025-2026 Actual Electronic Design Lab.<br>
-                        All Rights Reserved.
-                    </p>
+                        <div class="md-input-group mt-6">
+                            <input type="password" name="password" id="password" class="md-input" required
+                                placeholder=" ">
+                            <label for="password" class="md-label">密码</label>
+                        </div>
+
+                        <div class="pt-4">
+                            <button type="submit"
+                                class="btn-action w-full font-bold py-4 flex items-center justify-center group shadow-lg">
+                                认证并进入
+                                <span class="ml-2 group-hover:translate-x-1 transition-transform">→</span>
+                            </button>
+                        </div>
+                    </form>
                 </div>
             </div>
         </div>
@@ -232,7 +306,7 @@
         // Configuration
         const CONFIG = {
             linesPerHalf: 45,
-            vertexCount: 150, // Increased for smoother thickness variation
+            vertexCount: 150,
             mouseRadius: 300,
             amplitudeBase: 30,
             speedBase: 0.002
@@ -271,24 +345,19 @@
 
             halves.forEach(dir => {
                 for (let i = 0; i < CONFIG.linesPerHalf; i++) {
-                    const progress = i / (CONFIG.linesPerHalf - 1); // 0 to 1
+                    const progress = i / (CONFIG.linesPerHalf - 1);
 
-                    // Base positioning
                     const yOffset = Math.pow(progress, 1.2) * (height / 2 - 20) + 20;
                     const baseY = cy + dir * yOffset;
 
                     ctx.beginPath();
 
-                    // 1. Dynamic Thickness
-                    // Base thickness varies by line index + slow sine wave over time
                     const baseWidth = 0.5 + Math.sin(time * 2 + i * 0.5) * 0.5 + progress * 1.5;
                     ctx.lineWidth = Math.max(0.5, baseWidth);
 
-                    // Draw line segments
                     for (let j = 0; j <= CONFIG.vertexCount; j++) {
                         const x = (j / CONFIG.vertexCount) * width;
 
-                        // Wave Motion
                         const noise =
                             Math.sin(x * 0.003 + time * (1 + progress) + i * 0.2) * CONFIG.amplitudeBase * (1 + progress) +
                             Math.sin(x * 0.01 - time * 2) * 5;
@@ -318,7 +387,64 @@
 
         resize();
         animate();
+
+        // ========== Entrance Animation Orchestration ==========
+
+        const isDesktop = window.innerWidth >= 768;
+        const logoContainer = document.getElementById('logoContainer');
+        const loginCardContainer = document.getElementById('loginCardContainer');
+        const mainLayout = document.getElementById('mainLayout');
+
+        function runEntranceAnimation() {
+            // Phase 0: Start with pure black, begin canvas fade-in
+            setTimeout(() => {
+                canvas.classList.add('canvas-fade-in');
+            }, 100);
+
+            if (isDesktop) {
+                // Desktop Animation Sequence
+
+                // Phase 1: Logo appears at center (after canvas starts fading)
+                setTimeout(() => {
+                    logoContainer.classList.add('logo-phase-1');
+                }, 400);
+
+                // Phase 2: Card slides in first, then logo moves left (creating "push" effect)
+                setTimeout(() => {
+                    // Card starts sliding in first
+                    loginCardContainer.classList.add('login-card-slide-in');
+                }, 2200); // 400ms delay + 1400ms logo appear + 400ms pause
+
+                // Logo moves left slightly after card starts (pushed by card)
+                setTimeout(() => {
+                    logoContainer.classList.remove('logo-phase-1');
+                    logoContainer.classList.add('logo-phase-2');
+                }, 2500); // 300ms after card starts moving
+
+            } else {
+                // Mobile Animation Sequence (no logo)
+
+                // Phase 1: Just canvas fades in, then pause
+                // Phase 2: Card slides in
+                setTimeout(() => {
+                    loginCardContainer.classList.add('login-card-slide-in-mobile');
+                }, 1800); // 100ms + 2000ms canvas fade + 700ms pause (adjusted for mobile)
+            }
+        }
+
+        // Start the entrance animation
+        runEntranceAnimation();
     </script>
+    <div class="absolute bottom-6 left-0 right-0 z-20 flex flex-col items-center gap-1 pointer-events-none">
+        <p
+            class="text-[#8b99a7] text-[10px] uppercase font-bold tracking-widest opacity-30 leading-relaxed select-none">
+            Copyright &copy;2025-2026 Actual Electronic Design Lab, All Rights Reserved.
+        </p>
+        <a href="https://beian.miit.gov.cn/" target="_blank"
+            class="text-[#8b99a7] text-[11px] font-medium tracking-widest opacity-30 hover:opacity-100 transition-opacity duration-300 pointer-events-auto">
+            陕ICP备2025076349号-1
+        </a>
+    </div>
 </body>
 
 </html>
